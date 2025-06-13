@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Video Player</title>
+    <title>VIXEN PLAYER</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Basic Reset and Body Styling */
+        :root {
+            --bg-color: #000000;
+            --container-bg: #111111;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --border-color: #333333;
+            --accent-blue: #3498db;
+            --accent-red: #e74c3c;
+            --accent-green: #2ecc71;
+        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             display: flex;
@@ -15,445 +25,448 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #121212; /* Dark background */
-            color: #e0e0e0; /* Light gray text */
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 1rem;
+            overflow-x: hidden;
         }
-
-        /* Password Overlay */
-        #password-overlay {
+        
+        /* --- Password Overlay Styles --- */
+        #passwordOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 10000;
+            flex-direction: column;
+            transition: opacity 0.3s ease-in-out;
         }
-
-        #password-modal {
-            background-color: #1e1e1e;
-            padding: 30px 35px;
-            border-radius: 16px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        #passwordForm {
+            background-color: var(--container-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             text-align: center;
             width: 90%;
             max-width: 400px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
         }
-        
-        #password-modal h2 {
-            color: #ffffff;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        #password-input {
+        #passwordInput {
             width: 100%;
-            padding: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
             border-radius: 8px;
-            border: 1px solid #444;
-            background-color: #2a2a2a;
-            color: #e0e0e0;
+            border: 1px solid var(--border-color);
+            background-color: #222;
+            color: var(--text-primary);
             font-size: 1rem;
-            margin-bottom: 20px;
-            box-sizing: border-box;
+            text-align: center;
         }
-
-        #password-submit {
-             background-color: #ffffff;
-             color: #121212;
-        }
-        
-        #password-message {
-            color: #ff7675;
-            min-height: 20px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-
-        /* Main App Content Container */
-        #main-content {
-            display: none; /* Hide content until password is correct */
+        #passwordSubmit {
             width: 100%;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: var(--text-primary);
+            color: var(--bg-color);
+        }
+         #passwordSubmit:hover {
+            opacity: 0.9;
+         }
+        #passwordError {
+            color: var(--accent-red);
+            min-height: 20px;
+            margin-top: 1rem;
+            font-weight: 500;
         }
 
-        /* Main Container for Content */
         .container {
-            background-color: #1e1e1e; /* Slightly lighter dark shade for container */
-            padding: 30px 35px;
-            border-radius: 16px; /* More rounded corners */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); /* Enhanced shadow for depth */
+            background-color: var(--container-bg);
+            padding: clamp(1rem, 5vw, 2rem);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             text-align: center;
             width: 100%;
-            max-width: 720px;
-            transition: all 0.3s ease-in-out;
+            max-width: 800px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
         }
-
-        /* Page Title */
         h1 {
-            color: #ffffff; /* White title */
-            margin-bottom: 30px;
-            font-size: 2rem; /* Responsive font size */
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
             font-weight: 700;
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
         }
-
-        /* Video Player Wrapper */
         .video-wrapper {
             position: relative;
             width: 100%;
-            background-color: #000000;
-            border-radius: 12px; /* Rounded corners for video area */
-            overflow: hidden; /* Ensures video corners are rounded */
-            margin-bottom: 30px;
-            display: none; /* Initially hidden */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            display: none;
         }
-
         .video-wrapper.visible {
-            display: block; /* Show when video is ready */
+            display: block;
         }
-
-        /* Video Element Styling */
         .video-wrapper video {
-            display: block; /* Removes extra space below video */
+            display: block;
             width: 100%;
-            height: auto; /* Maintain aspect ratio */
-            max-height: 70vh; /* Max height to prevent very tall videos from dominating */
-            border-radius: 12px; /* Match wrapper's border radius */
-            background-color: #000000;
+            height: auto;
+            max-height: 70vh;
+            border-radius: 12px;
         }
-        
-        /* --- Filter Controls Layout --- */
-        .filter-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .btn {
-            border: none;
-            padding: 12px 28px;
-            font-size: 1rem;
-            font-weight: 500;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .btn:disabled {
-            background-color: #424242 !important;
-            color: #757575 !important;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        #bothButton {
-            background-color: #ffffff;
-            color: #121212;
-            width: 100%;
-            max-width: 300px;
-        }
-        
-        #pomfButton {
-            background-color: #e74c3c;
-            color: white;
-        }
-        #twitterButton {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        #copyUrlButton {
-            background-color: #2ecc71;
-            color: #ffffff;
-            display: none;
-        }
-        
-        /* Current Video URL Display */
-        #currentVideoUrlDisplay {
-            display: none;
-            word-break: break-all;
-            margin-bottom: 15px;
+        .preload-status-area {
             font-size: 0.9rem;
-            color: #b0b0b0;
-            background-color: #2a2a2a;
-            padding: 10px 15px;
-            border-radius: 8px;
+            color: var(--accent-green);
+            font-weight: 500;
+            margin-top: -0.75rem;
+            margin-bottom: 1.5rem;
+            min-height: 22px;
+            transition: opacity 0.3s;
+            opacity: 0;
         }
-
-        /* Message Area for Feedback */
-        .message-area {
-            margin-top: 25px;
-            font-size: 0.95rem;
-            color: #bdbdbd;
-            min-height: 25px;
-            line-height: 1.6;
+        .preload-status-area.visible {
+            opacity: 1;
         }
-
-        .message-area.error { color: #ff7675; }
-
-        /* Loading Spinner */
-        .loader {
-            border: 4px solid #555;
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto 0;
+        .video-info-container {
             display: none;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            background-color: var(--bg-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            flex-wrap: wrap;
         }
-
+        #currentVideoUrlDisplay { word-break: break-all; font-size: 0.85rem; color: var(--text-secondary); flex: 1; min-width: 150px; }
+        .quality-badge { font-size: 0.8rem; font-weight: 600; color: #000; background-color: var(--text-primary); padding: 0.25rem 0.75rem; border-radius: 20px; white-space: nowrap; }
+        .controls-container { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+        .main-actions, .source-actions, .history-actions { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+        .btn { border: 1px solid var(--border-color); padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; background-color: var(--container-bg); color: var(--text-primary); flex-grow: 1; }
+        .btn:hover:not(:disabled) { border-color: var(--text-secondary); transform: translateY(-2px); }
+        .btn:disabled { background-color: #222 !important; color: #666 !important; cursor: not-allowed; border-color: var(--border-color); }
+        #mainActionButton { background-color: var(--text-primary); color: var(--bg-color); border: none; font-weight: 700; }
+        #prevButton, #nextButton { background-color: #444; }
+        #twitterButton, #twitterHdButton { color: var(--accent-blue); border-color: var(--accent-blue); }
+        #twitterButton:hover:not(:disabled), #twitterHdButton:hover:not(:disabled) { background-color: rgba(52, 152, 219, 0.1); }
+        #copyUrlButton { background-color: transparent; color: var(--accent-green); border-color: var(--accent-green); display: none; width: 100%; max-width: 400px; margin: 0 auto; }
+        #copyUrlButton:hover:not(:disabled) { background-color: rgba(46, 204, 113, 0.1); }
+        .message-area, .loader { margin-top: 1rem; }
+        .message-area { min-height: 25px; font-size: 0.95rem; color: var(--text-secondary); transition: color 0.3s; }
+        .message-area.error { color: var(--accent-red); font-weight: 500; }
+        .message-area.success { color: var(--accent-green); font-weight: 500; }
+        .loader { border: 4px solid var(--border-color); border-top: 4px solid var(--text-primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-left: auto; margin-right: auto; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
-            .container { padding: 20px 15px; }
-            h1 { font-size: 1.75rem; }
-            .btn { padding: 12px 20px; font-size: 0.95rem; }
-        }
     </style>
 </head>
 <body>
-    <!-- Password Protection -->
-    <div id="password-overlay">
-        <div id="password-modal">
+    <!-- Password prompt overlay -->
+    <div id="passwordOverlay">
+        <form id="passwordForm">
             <h2>Enter Password</h2>
-            <h2>+18 Only</h2>
-            <input type="password" id="password-input" placeholder="Password">
-            <button id="password-submit" class="btn">Submit</button>
-            <p id="password-message"></p>
-        </div>
+            <input type="password" id="passwordInput" placeholder="•••••••" autofocus>
+            <button type="submit" id="passwordSubmit">Access</button>
+            <p id="passwordError"></p>
+        </form>
     </div>
-    
-    <!-- Main Application Content -->
-    <div id="main-content">
-        <div class="container">
-            <h1>Random Video Player</h1>
 
-            <div class="video-wrapper" id="videoWrapper">
-                <video id="videoPlayer" controls controlsList="nodownload">Your browser does not support the video tag.</video>
-            </div>
-
-            <div id="currentVideoUrlDisplay"></div>
-            
-            <div class="filter-controls">
-                <button id="bothButton" class="btn">Both</button>
-                <div class="button-group">
-                    <button id="pomfButton" class="btn">pomf</button>
-                    <button id="twitterButton" class="btn">twitter</button>
-                </div>
-            </div>
-            
-            <button id="copyUrlButton" class="btn">Copy URL</button>
-
-            <div class="loader" id="loader"></div>
-            <div id="messageArea" class="message-area">Loading video lists...</div>
+    <!-- Main player container, hidden by default -->
+    <div class="container" id="mainContainer" style="display: none;">
+        <h1>VIXEN PLAYER</h1>
+        <div class="video-wrapper" id="videoWrapper">
+            <video id="videoPlayer" controls controlsList="nodownload" playsinline>Your browser does not support the video tag.</video>
         </div>
+        
+        <div id="preloadStatus" class="preload-status-area"></div>
+        
+        <video id="preloaderVideo" style="display: none;" playsinline></video>
+
+        <div class="video-info-container" id="videoInfo">
+            <span id="currentVideoUrlDisplay"></span>
+            <span id="videoQualityDisplay" class="quality-badge"></span>
+        </div>
+        <div class="controls-container">
+            <div class="main-actions">
+                <button id="mainActionButton" class="btn">Load First Video</button>
+            </div>
+            <div class="history-actions">
+                <button id="prevButton" class="btn">Previous</button>
+                <button id="nextButton" class="btn">Next</button>
+            </div>
+            <div class="source-actions">
+                <button id="allSourcesButton" class="btn">(from ALL)</button>
+                <button id="pomfButton" class="btn">From pomf</button>
+                <button id="twitterButton" class="btn">From Twitter</button>
+                <button id="twitterHdButton" class="btn">Twitter (1080p)</button>
+            </div>
+        </div>
+        <button id="copyUrlButton" class="btn">Copy URL</button>
+        <div class="loader" id="loader"></div>
+        <div id="messageArea" class="message-area">Loading video lists...</div>
     </div>
 
     <script>
-        // --- Password Elements ---
-        const passwordOverlay = document.getElementById('password-overlay');
-        const passwordInput = document.getElementById('password-input');
-        const passwordSubmit = document.getElementById('password-submit');
-        const passwordMessage = document.getElementById('password-message');
-        const mainContent = document.getElementById('main-content');
+        // --- PASSWORD LOGIC ---
+        const passwordOverlay = document.getElementById('passwordOverlay');
+        const passwordForm = document.getElementById('passwordForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+        const mainContainer = document.getElementById('mainContainer');
         const CORRECT_PASSWORD = '1432145';
 
-        // --- App Elements ---
-        const videoPlayer = document.getElementById('videoPlayer');
+        // --- DOM ELEMENTS ---
         const videoWrapper = document.getElementById('videoWrapper');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const preloaderVideo = document.getElementById('preloaderVideo');
+        const preloadStatus = document.getElementById('preloadStatus');
         const messageArea = document.getElementById('messageArea');
         const loader = document.getElementById('loader');
-        const currentVideoUrlDisplay = document.getElementById('currentVideoUrlDisplay');
         const copyUrlButton = document.getElementById('copyUrlButton');
-        
-        // Filter Buttons
-        const bothButton = document.getElementById('bothButton');
+        const videoInfo = document.getElementById('videoInfo');
+        const currentVideoUrlDisplay = document.getElementById('currentVideoUrlDisplay');
+        const videoQualityDisplay = document.getElementById('videoQualityDisplay');
+        const mainActionButton = document.getElementById('mainActionButton');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const allSourcesButton = document.getElementById('allSourcesButton');
         const pomfButton = document.getElementById('pomfButton');
         const twitterButton = document.getElementById('twitterButton');
+        const twitterHdButton = document.getElementById('twitterHdButton');
 
-        // State and Config
-        const pastebinRawUrls = {
-            pomf: 'https://pastebin.com/raw/G5LMtN5H',
-            twitter: 'https://pastebin.com/raw/UbnXUR7n'
-        };
-        
-        let urlSources = {
-            pomf: [],
-            twitter: [],
-            all: []
-        };
-        
-        let isLoading = false;
-        let currentRawVideoUrl = '';
+        // --- STATE AND CONFIG ---
+        const sourceGistIds = { pomf: '8435b6692ada4ba7cf42f4a1c15ee03e', twitter: '073555ec2ec9f2157e2ab17512876b00' };
+        const CACHE_KEY = 'simpleVideoPlayerCache';
+        const CACHE_DURATION_MS = 4 * 60 * 60 * 1000;
+        let urlSources = { pomf: [], twitter: [], twitter_hd: [], all: [] };
+        let currentSource = 'all';
+        let videoHistory = [];
+        let historyIndex = -1;
+        let failedUrls = new Set();
+        let preloadedInfo = null;
 
-        // --- App Functions ---
-        function toggleLoader(show) {
-            loader.style.display = show ? 'block' : 'none';
-        }
-
-        function updateMessage(text, isError = false) {
-            messageArea.textContent = text;
-            messageArea.classList.toggle('error', isError);
-        }
-        
+        // --- UI & STATE MANAGEMENT ---
         function setButtonsDisabled(disabled) {
-            bothButton.disabled = disabled;
-            pomfButton.disabled = disabled;
-            twitterButton.disabled = disabled;
-        }
-
-        async function fetchAndStoreUrls() {
-            setButtonsDisabled(true);
-            toggleLoader(true);
-            updateMessage('Fetching video lists from all sources...');
-            
-            const fetchPromises = Object.entries(pastebinRawUrls).map(([source, url]) => {
-                const proxyRequestUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                console.log(`Fetching from ${source} via proxy...`);
-                return fetch(proxyRequestUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Failed to fetch ${source} (Status: ${response.status})`);
-                        return response.text();
-                    })
-                    .then(textData => {
-                        const urls = textData.split(/\r?\n/).map(u => u.trim()).filter(u => u.startsWith('http'));
-                        if (urls.length === 0) console.warn(`No URLs found for source: ${source}`);
-                        return { source, urls };
-                    })
-                    .catch(error => {
-                        console.error(`Error fetching source '${source}':`, error);
-                        return { source, urls: [], error };
-                    });
-            });
-
-            const results = await Promise.all(fetchPromises);
-            
-            urlSources.all = [];
-            let failedSources = [];
-
-            results.forEach(result => {
-                urlSources[result.source] = result.urls;
-                if (result.error) {
-                    failedSources.push(result.source);
-                }
-                if(result.urls.length > 0) {
-                   urlSources.all = urlSources.all.concat(result.urls);
-                }
-            });
-            
-            toggleLoader(false);
-
-            if (urlSources.all.length === 0) {
-                updateMessage('Error: Could not load any videos from any source.', true);
-            } else {
-                let statusMessage = `Loaded ${urlSources.all.length} total videos. Ready to play!`;
-                if (failedSources.length > 0) {
-                    statusMessage += ` (Failed to load: ${failedSources.join(', ')})`;
-                }
-                updateMessage(statusMessage, failedSources.length > 0);
-                setButtonsDisabled(false);
+            [mainActionButton, allSourcesButton, pomfButton, twitterButton, twitterHdButton, prevButton, nextButton].forEach(btn => btn.disabled = disabled);
+            if (!disabled) {
+                updateHistoryButtons();
+                if (urlSources.twitter_hd.length === 0) twitterHdButton.disabled = true;
             }
         }
 
-        function playRandomVideo(source) {
-            const urlList = urlSources[source];
+        function updateHistoryButtons() {
+            prevButton.disabled = historyIndex <= 0;
+            nextButton.disabled = historyIndex >= videoHistory.length - 1;
+        }
+
+        const toggleLoader = (show) => loader.style.display = show ? 'block' : 'none';
+        const updateMessage = (text, type = 'info') => {
+            messageArea.textContent = text;
+            messageArea.className = 'message-area ' + type;
+        };
+        
+        // --- CORE VIDEO LOGIC ---
+        function loadVideo(url, fromHistory = false) {
+            if (!url) { updateMessage("Cannot load video: URL is invalid.", 'error'); return; }
             
-            if (!urlList || urlList.length === 0) {
-                updateMessage(`No videos available for the "${source}" source. Try another.`, true);
+            preloadStatus.classList.remove('visible');
+            
+            videoWrapper.classList.add('visible');
+            mainActionButton.textContent = 'Next Random Video';
+
+            toggleLoader(true);
+            updateMessage('Loading video...', 'info');
+            videoPlayer.src = url;
+            videoPlayer.load();
+
+            if (!fromHistory) {
+                if (videoHistory[historyIndex] !== url) {
+                    videoHistory.splice(historyIndex + 1);
+                    videoHistory.push(url);
+                    historyIndex = videoHistory.length - 1;
+                }
+            }
+            updateHistoryButtons();
+        }
+
+        function loadRandomVideo(source) {
+            currentSource = source;
+            setButtonsDisabled(true);
+            if (preloadedInfo && (preloadedInfo.source === source || source === 'all' || (source === 'twitter_hd' && preloadedInfo.url.includes('1920x1080')))) {
+                loadVideo(preloadedInfo.url);
+                preloadedInfo = null;
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * urlList.length);
-            currentRawVideoUrl = urlList[randomIndex];
+            const sourceList = urlSources[source];
+            if (!sourceList || sourceList.length === 0) {
+                updateMessage(`No videos available for "${source}".`, 'error');
+                setButtonsDisabled(false);
+                return;
+            }
 
-            updateMessage('Loading video...');
+            let playableUrls = sourceList.filter(url => !failedUrls.has(url) && url !== videoPlayer.src);
+            if (playableUrls.length === 0) {
+                failedUrls.clear();
+                playableUrls = sourceList.filter(url => !failedUrls.has(url) && url !== videoPlayer.src);
+                 if (playableUrls.length === 0) {
+                     updateMessage(`No unique videos to play in "${source}".`, 'error');
+                     setButtonsDisabled(false);
+                     return;
+                }
+            }
+            loadVideo(playableUrls[Math.floor(Math.random() * playableUrls.length)]);
+        }
+
+        function preloadNextVideo() {
+            preloadedInfo = null; 
+            preloaderVideo.src = '';
+
+            const sourceList = urlSources[currentSource];
+            const playableUrls = sourceList.filter(url => !failedUrls.has(url) && url !== videoPlayer.src);
+            if (playableUrls.length === 0) return;
+            
+            const urlToPreload = playableUrls[Math.floor(Math.random() * playableUrls.length)];
+            preloadedInfo = { url: urlToPreload, source: currentSource };
+            preloaderVideo.src = urlToPreload;
+            preloaderVideo.load();
+        }
+
+        // --- DATA FETCHING & INITIALIZATION ---
+        async function initializePlayer() {
+            setButtonsDisabled(true);
             toggleLoader(true);
-            videoWrapper.classList.remove('visible');
-            copyUrlButton.style.display = 'none';
+            updateMessage('Loading video lists...');
 
-            videoPlayer.src = currentRawVideoUrl;
-            videoPlayer.load();
-            currentVideoUrlDisplay.textContent = currentRawVideoUrl;
-            currentVideoUrlDisplay.style.display = 'block';
-
-            videoPlayer.oncanplay = () => {
-                toggleLoader(false);
-                videoWrapper.classList.add('visible');
-                copyUrlButton.style.display = 'inline-block';
-                videoPlayer.play().catch(e => updateMessage(`Playback error: ${e.message}`, true));
-                updateMessage('');
-            };
-
-            videoPlayer.onerror = (e) => {
-                toggleLoader(false);
-                updateMessage('Error loading video. Trying another from the same list...', true);
-                setTimeout(() => playRandomVideo(source), 1500);
-            };
-        }
-
-        // --- Password Logic ---
-        function checkPassword() {
-            const enteredPassword = passwordInput.value;
-            if (enteredPassword === CORRECT_PASSWORD) {
-                passwordOverlay.style.display = 'none';
-                mainContent.style.display = 'flex';
-                // Once authenticated, start the app's main logic
-                fetchAndStoreUrls();
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            let listsLoaded = false;
+            if (cachedData) {
+                const parsed = JSON.parse(cachedData);
+                if (Date.now() - parsed.timestamp < CACHE_DURATION_MS) {
+                    urlSources = parsed.data;
+                    listsLoaded = true;
+                }
+            }
+            
+            if (!listsLoaded) {
+                try {
+                    const results = await Promise.all(Object.entries(sourceGistIds).map(async ([source, gistId]) => {
+                        const res = await fetch(`https://api.github.com/gists/${gistId}`);
+                        if (!res.ok) throw new Error(`Gist fetch failed: ${res.status}`);
+                        const data = await res.json();
+                        const urls = data.files[Object.keys(data.files)[0]].content.split(/\r?\n/).filter(u => u.startsWith('http'));
+                        return { source, urls };
+                    }));
+                    urlSources = { pomf: [], twitter: [], twitter_hd: [], all: [] };
+                    results.forEach(res => {
+                        urlSources[res.source] = res.urls;
+                        urlSources.all.push(...res.urls);
+                    });
+                    urlSources.twitter_hd = urlSources.twitter.filter(url => url.includes('1920x1080'));
+                    if (urlSources.all.length > 0) {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: urlSources }));
+                    }
+                } catch (error) {
+                    toggleLoader(false);
+                    updateMessage(`Error: ${error.message}`, 'error');
+                    return;
+                }
+            }
+            
+            toggleLoader(false);
+            if (urlSources.all.length > 0) {
+                updateMessage(`Loaded ${urlSources.all.length} videos. Ready to play!`, 'success');
+                setButtonsDisabled(false);
             } else {
-                passwordMessage.textContent = 'Incorrect password. Please try again.';
-                passwordInput.value = '';
+                updateMessage('Could not load any video lists. Please try again later.', 'error');
             }
         }
+
+        // --- EVENT LISTENERS ---
+        mainActionButton.addEventListener('click', () => loadRandomVideo(currentSource));
+        allSourcesButton.addEventListener('click', () => loadRandomVideo('all'));
+        pomfButton.addEventListener('click', () => loadRandomVideo('pomf'));
+        twitterButton.addEventListener('click', () => loadRandomVideo('twitter'));
+        twitterHdButton.addEventListener('click', () => loadRandomVideo('twitter_hd'));
         
-        // --- Event Listeners ---
+        prevButton.addEventListener('click', () => { if (historyIndex > 0) { historyIndex--; loadVideo(videoHistory[historyIndex], true); }});
+        nextButton.addEventListener('click', () => { if (historyIndex < videoHistory.length - 1) { historyIndex++; loadVideo(videoHistory[historyIndex], true); }});
         
-        // Password submission
-        passwordSubmit.addEventListener('click', checkPassword);
-        passwordInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                checkPassword();
-            }
+        videoPlayer.addEventListener('canplay', () => {
+            toggleLoader(false);
+            setButtonsDisabled(false);
+            videoInfo.style.display = 'flex';
+            copyUrlButton.style.display = 'block';
+            currentVideoUrlDisplay.textContent = videoPlayer.src;
+            videoQualityDisplay.textContent = `${videoPlayer.videoWidth}x${videoPlayer.videoHeight}`;
+            updateMessage('Video loaded. Press play on the player.', 'info'); 
+            videoPlayer.play().catch(e => {
+                console.warn("Autoplay was prevented by the browser.");
+            });
+            preloadNextVideo();
+        });
+
+        videoPlayer.addEventListener('ended', () => {
+            updateMessage('Video ended. Loading next...', 'info');
+            loadRandomVideo(currentSource);
+        });
+
+        videoPlayer.addEventListener('error', () => {
+            failedUrls.add(videoPlayer.src);
+            updateMessage('This video failed to load. Trying another...', 'error');
+            setTimeout(() => loadRandomVideo(currentSource), 1000);
+        });
+
+        preloaderVideo.addEventListener('canplaythrough', () => {
+            console.log("Preload successful for:", preloaderVideo.src);
+            preloadStatus.textContent = 'Next video is preloaded and ready!';
+            preloadStatus.classList.add('visible');
         });
         
-        // App buttons
-        bothButton.addEventListener('click', () => playRandomVideo('all'));
-        pomfButton.addEventListener('click', () => playRandomVideo('pomf'));
-        twitterButton.addEventListener('click', () => playRandomVideo('twitter'));
-        
+        preloaderVideo.addEventListener('error', () => {
+             if (preloadedInfo) {
+                console.warn("Preload failed for:", preloadedInfo.url);
+                failedUrls.add(preloadedInfo.url);
+                preloadedInfo = null;
+                setTimeout(preloadNextVideo, 100);
+            }
+        });
+
         copyUrlButton.addEventListener('click', () => {
-            if (!currentRawVideoUrl) return;
-            const textarea = document.createElement('textarea');
-            textarea.value = currentRawVideoUrl;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
+            const ta = document.createElement("textarea");
+            ta.value = videoPlayer.src; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
             copyUrlButton.textContent = 'Copied!';
             setTimeout(() => { copyUrlButton.textContent = 'Copy URL'; }, 2000);
         });
-        
-        // Initial page setup is now handled by the password check
+
+        // --- KICKOFF ---
+        passwordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (passwordInput.value === CORRECT_PASSWORD) {
+                passwordOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    passwordOverlay.style.display = 'none';
+                    mainContainer.style.display = 'block';
+                    initializePlayer();
+                }, 300);
+            } else {
+                passwordError.textContent = 'Incorrect password.';
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        });
     </script>
 </body>
 </html>
