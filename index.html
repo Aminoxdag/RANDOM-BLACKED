@@ -246,7 +246,7 @@
         const twitterHdButton = document.getElementById('twitterHdButton');
 
         // --- STATE AND CONFIG ---
-        const sourceGistIds = { pomf: '8435b6692ada4ba7cf42f4a1c15ee03e', twitter: '073555ec2ec9f2157e2ab17512876b00' };
+        const NEW_SOURCE_URL = "https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/merged_list.txt";
         const CACHE_KEY = 'simpleVideoPlayerCache';
         const CACHE_DURATION_MS = 4 * 60 * 60 * 1000;
         let urlSources = { pomf: [], twitter: [], twitter_hd: [], all: [] };
@@ -303,7 +303,7 @@
         function loadRandomVideo(source) {
             currentSource = source;
             setButtonsDisabled(true);
-            if (preloadedInfo && (preloadedInfo.source === source || source === 'all' || (source === 'twitter_hd' && preloadedInfo.url.includes('1920x1080')))) {
+            if (preloadedInfo && (preloadedInfo.source === source || source === 'all' || (source === 'twitter_hd' && preloadedInfo.url.includes('1080')))) {
                 loadVideo(preloadedInfo.url);
                 preloadedInfo = null;
                 return;
@@ -318,13 +318,13 @@
 
             let playableUrls = sourceList.filter(url => !failedUrls.has(url) && url !== videoPlayer.src);
             if (playableUrls.length === 0) {
-                failedUrls.clear();
-                playableUrls = sourceList.filter(url => !failedUrls.has(url) && url !== videoPlayer.src);
+                failedUrls.clear(); // Reset failed list if we run out of options
+                playableUrls = sourceList.filter(url => url !== videoPlayer.src);
                  if (playableUrls.length === 0) {
                      updateMessage(`No unique videos to play in "${source}".`, 'error');
                      setButtonsDisabled(false);
                      return;
-                }
+                 }
             }
             loadVideo(playableUrls[Math.floor(Math.random() * playableUrls.length)]);
         }
@@ -361,19 +361,18 @@
             
             if (!listsLoaded) {
                 try {
-                    const results = await Promise.all(Object.entries(sourceGistIds).map(async ([source, gistId]) => {
-                        const res = await fetch(`https://api.github.com/gists/${gistId}`);
-                        if (!res.ok) throw new Error(`Gist fetch failed: ${res.status}`);
-                        const data = await res.json();
-                        const urls = data.files[Object.keys(data.files)[0]].content.split(/\r?\n/).filter(u => u.startsWith('http'));
-                        return { source, urls };
-                    }));
+                    const res = await fetch(NEW_SOURCE_URL);
+                    if (!res.ok) throw new Error(`Failed to fetch new source: ${res.status}`);
+                    const textContent = await res.text();
+                    const allUrls = textContent.split(/\r?\n/).filter(u => u.startsWith('http'));
+
+                    // Reset and categorize urls
                     urlSources = { pomf: [], twitter: [], twitter_hd: [], all: [] };
-                    results.forEach(res => {
-                        urlSources[res.source] = res.urls;
-                        urlSources.all.push(...res.urls);
-                    });
-                    urlSources.twitter_hd = urlSources.twitter.filter(url => url.includes('1920x1080'));
+                    urlSources.all = allUrls;
+                    urlSources.pomf = allUrls.filter(url => url.includes('pomf'));
+                    urlSources.twitter = allUrls.filter(url => url.includes('twimg'));
+                    urlSources.twitter_hd = urlSources.twitter.filter(url => url.includes('1080'));
+                    
                     if (urlSources.all.length > 0) {
                         localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: urlSources }));
                     }
@@ -439,7 +438,7 @@
                 console.warn("Preload failed for:", preloadedInfo.url);
                 failedUrls.add(preloadedInfo.url);
                 preloadedInfo = null;
-                setTimeout(preloadNextVideo, 100);
+                setTimeout(preloadNextVideo, 100); // Try preloading another one
             }
         });
 
@@ -470,3 +469,4 @@
     </script>
 </body>
 </html>
+
